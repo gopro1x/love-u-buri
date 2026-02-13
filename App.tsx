@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, Heart } from 'lucide-react';
 import Hero from './components/Hero';
 import Timeline from './components/Timeline';
 import LoveCards from './components/LoveCards';
@@ -18,10 +18,17 @@ enum Step {
 }
 
 const App: React.FC = () => {
+  const [hasEntered, setHasEntered] = useState(false);
   const [currentStep, setCurrentStep] = useState<Step>(Step.HERO);
   const [timelineIndex, setTimelineIndex] = useState(0);
   const [direction, setDirection] = useState<number>(0);
   const [isMuted, setIsMuted] = useState(soundManager.getMuted());
+
+  // Welcome screen tap — initializes audio and enters the experience
+  const handleEnter = () => {
+    soundManager.ensureInitialized();
+    setHasEntered(true);
+  };
 
   const isTransitioning = useRef(false);
   const touchStartY = useRef(0);
@@ -189,6 +196,70 @@ const App: React.FC = () => {
 
   return (
     <div className="h-screen w-screen relative overflow-hidden selection:bg-pink-300 selection:text-pink-900 flex items-center justify-center font-sans">
+
+      {/* ═══════════════════════════════════════
+          WELCOME OVERLAY — Tap to unlock audio
+          ═══════════════════════════════════════ */}
+      <AnimatePresence>
+        {!hasEntered && (
+          <motion.div
+            key="welcome"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center cursor-pointer"
+            style={{
+              background: 'linear-gradient(160deg, #1a0a2e 0%, #2d1150 40%, #4a1a6b 70%, #2d1150 100%)',
+            }}
+            onClick={handleEnter}
+          >
+            {/* Radial glow */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'radial-gradient(ellipse 60% 50% at 50% 45%, rgba(168,85,247,0.12) 0%, transparent 100%)',
+              }}
+            />
+
+            {/* Pulsing heart */}
+            <motion.div
+              animate={{ scale: [1, 1.15, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              className="relative mb-8"
+            >
+              <Heart size={48} fill="currentColor" className="text-pink-400 drop-shadow-lg" />
+              <motion.div
+                className="absolute inset-0 flex items-center justify-center"
+                animate={{ scale: [1, 1.8, 1], opacity: [0, 0.25, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <Heart size={48} fill="rgba(244,114,182,0.4)" className="blur-xl" strokeWidth={0} />
+              </motion.div>
+            </motion.div>
+
+            {/* Text */}
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
+              className="text-sm tracking-[0.3em] uppercase font-medium mb-3"
+              style={{ color: 'rgba(244, 186, 237, 0.85)' }}
+            >
+              I made something for you
+            </motion.p>
+
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.7, 0.4, 0.7] }}
+              transition={{ delay: 1, duration: 3, repeat: Infinity }}
+              className="text-xs tracking-[0.2em] uppercase mt-6"
+              style={{ color: 'rgba(255, 255, 255, 0.45)' }}
+            >
+              Tap anywhere to begin
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Backgrounds */}
       <div className="fixed inset-0 animate-gradient bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 -z-20" />
